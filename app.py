@@ -424,20 +424,40 @@ def clear_cache():
 def fetch_file():
     """🌩 Cloud Mode: Streams a completed download from the cloud cache to the user's phone/browser."""
     filepath = request.args.get('filepath')
-    if not filepath or not os.path.exists(filepath):
+    if not filepath:
+        return "No file specified.", 400
+        
+    # SECURITY PATCH: Prevent Directory Traversal
+    try:
+        safe_dir = os.path.abspath(SESSION_CACHE_DIR)
+        target_path = os.path.abspath(filepath)
+        if not target_path.startswith(safe_dir):
+            return "Unauthorized access.", 403
+    except Exception:
+        return "Invalid path.", 400
+        
+    if not os.path.exists(target_path):
         return "File not found or expired from server cache.", 404
     
-    return send_file(filepath, as_attachment=True)
+    return send_file(target_path, as_attachment=True)
 
 @app.route('/api/cleanup_file', methods=['POST'])
 def cleanup_file():
     """🌩 Cloud Mode: Deletes the file from the cloud server after download to save space."""
     filepath = request.json.get('filepath')
+    if not filepath:
+        return jsonify({'success': False})
+        
+    # SECURITY PATCH: Prevent Directory Traversal
     try:
-        if filepath and filepath.startswith(SESSION_CACHE_DIR) and os.path.exists(filepath):
-            os.remove(filepath)
+        safe_dir = os.path.abspath(SESSION_CACHE_DIR)
+        target_path = os.path.abspath(filepath)
+        if target_path.startswith(safe_dir) and os.path.exists(target_path):
+            os.remove(target_path)
             return jsonify({'success': True})
-    except Exception as e: pass
+    except Exception:
+        pass
+        
     return jsonify({'success': False})
 
 
