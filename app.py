@@ -8,6 +8,8 @@ import uuid
 import re
 import threading
 import time
+import platform
+import signal
 
 # Cloud Server Configuration
 SESSION_CACHE_DIR = os.path.join(os.getcwd(), 'ytdown_cache')
@@ -71,79 +73,91 @@ def index():
 def get_info():
     """Fetch video/playlist info"""
     data = request.json
-    url = data.get('url', '').strip()
+    url = data.get('url')
+    use_cookies = data.get('use_cookies', False)
+    browser = data.get('browser', 'safari')
+
     if not url:
         return jsonify({'error': 'No URL provided'}), 400
 
-    try:
-        stdout, stderr, code = run_ytdlp([
-            '--extractor-args', 'youtube:player-client=ios,tv,android',
-            '--dump-json',
-            '--flat-playlist',
-            '--no-warnings',
-            '--', url  # Use -- to safely pass URL
-        ], timeout=120)  # Increased timeout for large playlists
+    args = [
+        '--extractor-args', 'youtube:player-client=ios,tv,android',
+        '--dump-json',
+        '--flat-playlist',
+        '--no-warnings',
+    ]
+    if use_cookies:
+        # 🍪 Bot Bypass: Identify as local browser
+        args += ['--cookies-from-browser', browser]
+        
+    args += ['--', url]  # Use -- to safely pass URL
 
-        if code != 0 and (not stdout or not stdout.strip()):
-            # Filter out deprecation warnings and other non-critical noise
-            clean_error = stderr or "Unknown Error"
-            if "ERROR:" in clean_error:
-                clean_error = clean_error.split("ERROR:")[-1].strip()
-            return jsonify({'error': f'Could not fetch info: {clean_error[:300]}'}), 400
+    stdout, stderr, code = run_ytdlp(args, timeout=120)  # Increased timeout for large playlists
 
-        if not stdout:
-            return jsonify({'error': 'Empty response from engine'}), 500
+    if code != 0 and (not stdout or not stdout.strip()):
+        # Filter out deprecation warnings and other non-critical noise
+        clean_error = stderr or "Unknown Error"
+        if "ERROR:" in clean_error:
+            clean_error = clean_error.split("ERROR:")[-1].strip()
+        return jsonify({'error': f'Could not fetch info: {clean_error[:300]}'}), 400
 
-        lines = [l for l in stdout.split('\n') if l.strip()]
-        videos = []
-        for line in lines:
-            line = line.strip()
-            if not line.startswith('{'):
+    if not stdout:
+        return jsonify({'error': 'Empty response from engine'}), 500
+
+    lines = [l for l in stdout.split('\n') if l.strip()]
+    videos = []
+    for line in lines:
+        line = line.strip()
+        if not line.startswith('{'):
+            continue
+            
+        try:
+            info = json.loads(line)
+            if info.get('_type') == 'playlist':
                 continue
                 
-            try:
-                info = json.loads(line)
-                if info.get('_type') == 'playlist':
-                    continue
-                    
-                title = info.get('title', 'Unknown')
-                videos.append({
-                    'id': info.get('id', ''),
-                    'title': title,
-                    'duration': info.get('duration'),
-                    'thumbnail': info.get('thumbnail', ''),
-                    'url': info.get('url') or info.get('webpage_url') or url,
-                    'uploader': info.get('uploader', ''),
-                })
-                print(f"   [Scan] Found: {title[:40]}...")
-            except json.JSONDecodeError:
-                continue
+            title = info.get('title', 'Unknown')
+            videos.append({
+                'id': info.get('id', ''),
+                'title': title,
+                'duration': info.get('duration'),
+                'thumbnail': info.get('thumbnail', ''),
+                'url': info.get('url') or info.get('webpage_url') or url,
+                'uploader': info.get('uploader', ''),
+            })
+            print(f"   [Scan] Found: {title[:40]}...")
+        except json.JSONDecodeError:
+            continue
 
-        is_playlist = len(videos) > 1
-        return jsonify({'videos': videos, 'is_playlist': is_playlist})
-
-    except subprocess.TimeoutExpired:
-        return jsonify({'error': 'Request timed out. Check your internet connection.'}), 400
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    is_playlist = len(videos) > 1
+    return jsonify({'videos': videos, 'is_playlist': is_playlist})
 
 
 @app.route('/api/formats', methods=['POST'])
 def get_formats():
     """Fetch available formats for a specific video using the modern engine"""
     try:
-        url = request.json.get('url')
+        data = request.json
+        url = data.get('url')
+        use_cookies = data.get('use_cookies', False)
+        browser = data.get('browser', 'safari')
+        
         if not url:
             return jsonify({'error': 'No URL provided'}), 400
 
-        # Also support cookies during format fetching if needed, for now use standard
-        stdout, stderr, code = run_ytdlp([
+        args = [
             '--list-formats',
             '--no-warnings',
             '--extractor-args', 'youtube:player-client=ios,tv,android',
-            '-J',
-            '--', url
-        ])
+            '-J'
+        ]
+        
+        if use_cookies:
+            args += ['--cookies-from-browser', browser]
+            
+        args += ['--', url]
+
+        stdout, stderr, code = run_ytdlp(args)
 
         if not stdout:
             clean_error = stderr if stderr else "No output from yt-dlp"
@@ -258,11 +272,18 @@ def download():
     use_cookies = data.get('use_cookies', False)
     browser = data.get('browser', 'safari')
     overwrite = data.get('overwrite', False)
+    local_mode = data.get('local_mode', True)
     
-    # 🌩 Cloud Mode: Isolate downloads via UUID to prevent simultaneous user collisions
-    session_id = str(uuid.uuid4())
-    output_dir = os.path.join(SESSION_CACHE_DIR, session_id)
-    os.makedirs(output_dir, exist_ok=True)
+    if local_mode:
+        # 💻 Local Mode: Deposit file directly into user's physical Mac Downloads folder
+        output_dir = os.path.expanduser('~/Downloads')
+        os.makedirs(output_dir, exist_ok=True)
+        session_id = None
+    else:
+        # 🌩 Cloud Mode: Isolate downloads via UUID to prevent simultaneous user collisions
+        session_id = str(uuid.uuid4())
+        output_dir = os.path.join(SESSION_CACHE_DIR, session_id)
+        os.makedirs(output_dir, exist_ok=True)
 
     base_args = [
         '--no-cache-dir',
@@ -324,9 +345,8 @@ def download():
 
     # Optimized Apple Silicon Merging: Use Hardware acceleration if possible
     # Note: yt-dlp's internal merge is already fast, but we provide ffmpeg context
-    # Use h264_videotoolbox for macOS Apple Silicon acceleration
-    os.environ['FFREPORT'] = 'level=32'
-    base_args += ['--postprocessor-args', 'ffmpeg:-c:v h264_videotoolbox -b:v 8M'] if sys.platform == 'darwin' else []
+    # Use h264_videotoolbox strictly for Apple Silicon (arm64) to prevent crashing older Intel Macs
+    base_args += ['--postprocessor-args', 'ffmpeg:-c:v h264_videotoolbox -b:v 8M'] if sys.platform == 'darwin' and platform.machine() == 'arm64' else []
 
     # Explicitly find ffmpeg to ensure merging works
     ffmpeg_path = shutil.which('ffmpeg')
@@ -359,7 +379,17 @@ def download():
                 yield f"data: {json.dumps({'log': f'⚠️ Access denied. Retrying with alternative client ({client})...'})}\n\n"
             
             print(f"   [Engine] Running: {current_args[0]} {current_args[-1][:40]}...")
-            process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+            
+            # 🧟‍♂️ Zombie Process Defense: Start ffmpeg inside an isolated process group session footprint
+            process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                bufsize=1,
+                universal_newlines=True,
+                start_new_session=True
+            )
             forbidden_detected = False
             last_file_path = None
             
@@ -398,14 +428,16 @@ def download():
                 if not forbidden_detected:
                     process.wait()
                     if process.returncode == 0:
-                        yield f"data: {json.dumps({'done': True, 'filepath': last_file_path, 'dir': output_dir})}\n\n"
+                        is_local = True if local_mode else False
+                        yield f"data: {json.dumps({'done': True, 'filepath': last_file_path, 'dir': output_dir, 'is_local': is_local})}\n\n"
                     else:
                         yield f"data: {json.dumps({'error': 'Download failed'})}\n\n"
                     return 
                 
             except GeneratorExit:
                 if process.poll() is None:
-                    process.terminate()
+                    # Snaps the process and any spawned ffmpeg children instantly when the HTTP socket closes
+                    os.killpg(os.getpgid(process.pid), signal.SIGKILL)
                 return
             finally:
                 process.wait()

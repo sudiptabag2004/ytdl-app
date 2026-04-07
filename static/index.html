@@ -808,6 +808,25 @@
       </button>
     </div>
 
+    <!-- Identity & Bypass moved to Step 1 for pre-scan bypass -->
+    <div class="settings-block" style="margin-top: 16px; margin-bottom: 16px;">
+      <div class="settings-title">Identity & Bypass</div>
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-label">Cookie Sync (Unlock 4K & Bot Bypass)</div>
+          <div class="toggle-sub">Bypass blocks using local browser session</div>
+        </div>
+        <div class="toggle" id="cookieToggle" onclick="toggleCookies()"></div>
+      </div>
+      <div id="browserSelectWrap" style="display: none; padding: 0 16px 12px;">
+        <select class="lang-select" id="browserSelect" onchange="state.browser = this.value" style="margin-top: 0;">
+          <option value="safari">Safari (Default)</option>
+          <option value="chrome">Chrome</option>
+          <option value="firefox">Firefox</option>
+        </select>
+      </div>
+    </div>
+
     <div class="loading-wrap" id="loadingScan" style="display: none;">
       <div class="spinner"></div>
       <div class="loading-text">Scanning YouTube Link…</div>
@@ -889,37 +908,27 @@
             </div>
             <div class="toggle" id="overwriteToggle" onclick="toggleOverwrite()"></div>
           </div>
-        </div>
 
-        <!-- Cloud Target Path -->
-        <div class="option-group" style="padding: 16px; margin-top: 16px;">
-          <div style="font-size:12px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">Cloud Server Cache</div>
-          <div class="path-display" id="pathDisplay">/tmp/ytdown_cache (managed automatically)</div>
-        </div>
+          <!-- Mode Target Path -->
+          <div class="option-group" style="padding: 16px; margin-top: 16px;">
+            <div style="font-size:12px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">Download Mode</div>
+            <div class="toggle-row" style="padding: 0; background: transparent; margin-bottom: 8px;">
+              <div>
+                <div class="toggle-label" style="font-size:14px;">Direct to Mac</div>
+                <div class="toggle-sub">Saves immediately to local ~/Downloads</div>
+              </div>
+              <div class="toggle active" id="modeLocalToggle" onclick="toggleLocalMode()"></div>
+            </div>
+          </div>
 
-        <button class="btn-primary" style="height: 56px; font-size: 16px; width: 100%; margin-top: 16px;" onclick="startDownload()">Download Now ↓</button>
+          <button class="btn-primary" style="height: 56px; font-size: 16px; width: 100%; margin-top: 16px;" onclick="startDownload()">Download Now ↓</button>
+        </div>
       </div>
 
       <!-- Section 2: Identity & Bypass -->
       <div class="settings-block" style="margin-top: 24px;">
         <div class="settings-title">Identity & Bypass</div>
         
-        <div class="toggle-row">
-          <div>
-            <div class="toggle-label">Cookie Sync (Unlock 4K)</div>
-            <div class="toggle-sub">Bypass blocks using browser session</div>
-          </div>
-          <div class="toggle" id="cookieToggle" onclick="toggleCookies()"></div>
-        </div>
-        
-        <div id="browserSelectWrap" style="display: none; padding: 0 16px 12px;">
-          <select class="lang-select" id="browserSelect" onchange="state.browser = this.value" style="margin-top: 0;">
-            <option value="safari">Safari (Default)</option>
-            <option value="chrome">Chrome</option>
-            <option value="firefox">Firefox</option>
-          </select>
-        </div>
-
         <div class="toggle-row">
           <div>
             <div class="toggle-label">Robust Mode</div>
@@ -997,9 +1006,6 @@
       <div id="fileDetail" style="font-size: 11px; color: var(--muted); margin-top: 10px; font-family: var(--mono);"></div>
     </div>
 
-      <div id="fileDetail" style="font-size: 11px; color: var(--muted); margin-top: 10px; font-family: var(--mono);"></div>
-    </div>
-
     <div class="success-banner" id="successBanner" style="display: none;">
       <h3>Download Complete</h3>
       <p id="successCountText">Files downloaded to cloud server successfully.</p>
@@ -1065,6 +1071,7 @@
     robustMode: true,
     useCookies: false,
     browser: 'safari',
+    localMode: true,
     overwrite: false,
     applyAllConflicts: false,
     conflictResolution: null, // 'overwrite' | 'skip'
@@ -1138,7 +1145,7 @@
       const res = await fetch('/api/info', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url })
+        body: JSON.stringify({ url, use_cookies: state.useCookies, browser: state.browser || 'safari' })
       });
       
       if (!res.ok) {
@@ -1263,7 +1270,7 @@
       const res = await fetch('/api/formats', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: v.url || state.url })
+        body: JSON.stringify({ url: v.url || state.url, use_cookies: state.useCookies, browser: state.browser || 'safari' })
       });
       if (!res.ok) throw new Error('Format fetch failed');
       const data = await res.json();
@@ -1497,42 +1504,48 @@
     const cloudLinksContainer = document.getElementById('cloudDownloads');
     cloudLinksContainer.innerHTML = '';
     
-    if (state.completedFiles.length > 0) {
-      state.completedFiles.forEach(file => {
-         const link = document.createElement('a');
-         link.href = `/api/fetch_file?filepath=${encodeURIComponent(file.filepath)}`;
-         link.className = 'btn primary';
-         link.style.display = 'block';
-         link.style.textAlign = 'center';
-         link.style.textDecoration = 'none';
-         link.style.height = '48px';
-         link.style.lineHeight = '48px';
-         link.style.padding = '0 16px';
-         link.style.background = '#28a745';
-         link.textContent = `📥 Save to Device: ${file.title}`;
-         
-         const cleanupBtn = document.createElement('button');
-         cleanupBtn.className = 'btn outline';
-         cleanupBtn.style.marginTop = '4px';
-         cleanupBtn.style.height = '32px';
-         cleanupBtn.style.fontSize = '12px';
-         cleanupBtn.textContent = '❌ Delete from Server (Save Space)';
-         cleanupBtn.onclick = async () => {
-             cleanupBtn.textContent = 'Deleting...';
-             await fetch('/api/cleanup_file', {
-                 method: 'POST',
-                 headers: { 'Content-Type': 'application/json' },
-                 body: JSON.stringify({ filepath: file.filepath })
-             });
-             cleanupBtn.textContent = 'Deleted!';
-             cleanupBtn.disabled = true;
-             link.style.opacity = '0.5';
-             link.style.pointerEvents = 'none';
-         };
-         
-         cloudLinksContainer.appendChild(link);
-         cloudLinksContainer.appendChild(cleanupBtn);
-      });
+    if (state.localMode) {
+      if (state.completedFiles.length > 0) {
+        cloudLinksContainer.innerHTML = '<div style="font-size:14px; text-align:center; padding:12px; background:rgba(40,167,69,0.1); color:#28a745; border-radius:8px;">✅ Success! Files securely deposited into your Mac ~/Downloads folder.</div>';
+      }
+    } else {
+      if (state.completedFiles.length > 0) {
+        state.completedFiles.forEach(file => {
+           const link = document.createElement('a');
+           link.href = `/api/fetch_file?filepath=${encodeURIComponent(file.filepath)}`;
+           link.className = 'btn primary';
+           link.style.display = 'block';
+           link.style.textAlign = 'center';
+           link.style.textDecoration = 'none';
+           link.style.height = '48px';
+           link.style.lineHeight = '48px';
+           link.style.padding = '0 16px';
+           link.style.background = '#28a745';
+           link.textContent = `📥 Save to Device: ${file.title}`;
+           
+           const cleanupBtn = document.createElement('button');
+           cleanupBtn.className = 'btn outline';
+           cleanupBtn.style.marginTop = '4px';
+           cleanupBtn.style.height = '32px';
+           cleanupBtn.style.fontSize = '12px';
+           cleanupBtn.textContent = '❌ Delete from Server (Save Space)';
+           cleanupBtn.onclick = async () => {
+               cleanupBtn.textContent = 'Deleting...';
+               await fetch('/api/cleanup_file', {
+                   method: 'POST',
+                   headers: { 'Content-Type': 'application/json' },
+                   body: JSON.stringify({ filepath: file.filepath })
+               });
+               cleanupBtn.textContent = 'Deleted!';
+               cleanupBtn.disabled = true;
+               link.style.opacity = '0.5';
+               link.style.pointerEvents = 'none';
+           };
+           
+           cloudLinksContainer.appendChild(link);
+           cloudLinksContainer.appendChild(cleanupBtn);
+        });
+      }
     }
 
     if (state.failCount > 0) {
@@ -1584,7 +1597,8 @@
           robust_mode: state.robustMode,
           use_cookies: state.useCookies,
           browser: state.browser || 'safari',
-          overwrite: isRetry || state.overwrite
+          overwrite: isRetry || state.overwrite,
+          local_mode: state.localMode
         })
       }).then(res => {
         const reader = res.body.getReader();
