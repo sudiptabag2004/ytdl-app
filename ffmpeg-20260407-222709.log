@@ -1,0 +1,61 @@
+ffmpeg started on 2026-04-07 at 22:27:09
+Report written to "ffmpeg-20260407-222709.log"
+Log level: 32
+Command line:
+/opt/homebrew/bin/ffmpeg -y -loglevel repeat+info -i file:/Users/sudiptabag/Downloads/test3//Top_Watches_of_Top_YouTubers_Best_watch_collection_India.f134.mp4 -i file:/Users/sudiptabag/Downloads/test3//Top_Watches_of_Top_YouTubers_Best_watch_collection_India.f140.m4a -c copy -map 0:v:0 -map 1:a:0 -movflags +faststart -c:v h264_videotoolbox -b:v 8M file:/Users/sudiptabag/Downloads/test3//Top_Watches_of_Top_YouTubers_Best_watch_collection_India.temp.mp4
+ffmpeg version 8.1 Copyright (c) 2000-2026 the FFmpeg developers
+  built with Apple clang version 21.0.0 (clang-2100.0.123.102)
+  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/8.1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon
+  libavutil      60. 26.100 / 60. 26.100
+  libavcodec     62. 28.100 / 62. 28.100
+  libavformat    62. 12.100 / 62. 12.100
+  libavdevice    62.  3.100 / 62.  3.100
+  libavfilter    11. 14.100 / 11. 14.100
+  libswscale      9.  5.100 /  9.  5.100
+  libswresample   6.  3.100 /  6.  3.100
+Input #0, mov,mp4,m4a,3gp,3g2,mj2, from 'file:/Users/sudiptabag/Downloads/test3//Top_Watches_of_Top_YouTubers_Best_watch_collection_India.f134.mp4':
+  Metadata:
+    major_brand     : dash
+    minor_version   : 0
+    compatible_brands: iso6avc1mp41
+    creation_time   : 2025-07-24T05:13:07.000000Z
+  Duration: 00:06:38.17, start: 0.000000, bitrate: 166 kb/s
+  Stream #0:0[0x1](und): Video: h264 (Main) (avc1 / 0x31637661), yuv420p(tv, bt709, progressive), 640x360 [SAR 1:1 DAR 16:9], 226 kb/s, 24 fps, 24 tbr, 12288 tbn (default)
+    Metadata:
+      creation_time   : 2025-07-24T05:13:07.000000Z
+      handler_name    : ISO Media file produced by Google Inc.
+Input #1, mov,mp4,m4a,3gp,3g2,mj2, from 'file:/Users/sudiptabag/Downloads/test3//Top_Watches_of_Top_YouTubers_Best_watch_collection_India.f140.m4a':
+  Metadata:
+    major_brand     : dash
+    minor_version   : 0
+    compatible_brands: iso6mp41
+    creation_time   : 2025-07-24T04:40:24.000000Z
+    encoder         : Google
+  Duration: 00:06:38.25, start: 0.000000, bitrate: 129 kb/s
+  Stream #1:0[0x1](und): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 128 kb/s (default)
+    Metadata:
+      creation_time   : 2025-07-24T04:40:24.000000Z
+      handler_name    : ISO Media file produced by Google Inc.
+[vost#0:0 @ 0x84d0b0000] Multiple -codec/-c/-acodec/-vcodec/-scodec/-dcodec options specified for stream 0, only the last option '-codec:v h264_videotoolbox' will be used.
+Stream mapping:
+  Stream #0:0 -> #0:0 (h264 (native) -> h264 (h264_videotoolbox))
+  Stream #1:0 -> #0:1 (copy)
+Press [q] to stop, [?] for help
+Output #0, mp4, to 'file:/Users/sudiptabag/Downloads/test3//Top_Watches_of_Top_YouTubers_Best_watch_collection_India.temp.mp4':
+  Metadata:
+    major_brand     : dash
+    minor_version   : 0
+    compatible_brands: iso6avc1mp41
+    encoder         : Lavf62.12.100
+  Stream #0:0(und): Video: h264 (avc1 / 0x31637661), yuv420p(tv, bt709, progressive), 640x360 [SAR 1:1 DAR 16:9], q=2-31, 8000 kb/s, 24 fps, 12288 tbn (default)
+    Metadata:
+      encoder         : Lavc62.28.100 h264_videotoolbox
+      creation_time   : 2025-07-24T05:13:07.000000Z
+      handler_name    : ISO Media file produced by Google Inc.
+  Stream #0:1(und): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 128 kb/s (default)
+    Metadata:
+      creation_time   : 2025-07-24T04:40:24.000000Z
+      handler_name    : ISO Media file produced by Google Inc.
+frame=  322 fps=0.0 q=-0.0 size=    8448KiB time=00:00:13.37 bitrate=5174.3kbits/s speed=26.6x elapsed=0:00:00.50    frame=  762 fps=757 q=-0.0 size=   20224KiB time=00:00:31.70 bitrate=5225.0kbits/s speed=31.5x elapsed=0:00:01.00    frame= 1209 fps=803 q=-0.0 size=   32768KiB time=00:00:50.33 bitrate=5333.2kbits/s speed=33.4x elapsed=0:00:01.50    frame= 1666 fps=829 q=-0.0 size=   43776KiB time=00:01:09.37 bitrate=5169.2kbits/s speed=34.5x elapsed=0:00:02.00    frame= 2135 fps=851 q=-0.0 size=   52224KiB time=00:01:28.91 bitrate=4811.5kbits/s speed=35.4x elapsed=0:00:02.50    frame= 2569 fps=852 q=-0.0 size=   63488KiB time=00:01:47.00 bitrate=4860.7kbits/s speed=35.5x elapsed=0:00:03.01    frame= 2940 fps=835 q=-0.0 size=   81152KiB time=00:02:02.45 bitrate=5428.8kbits/s speed=34.8x elapsed=0:00:03.51    frame= 3239 fps=805 q=-0.0 size=  103424KiB time=00:02:14.91 bitrate=6279.8kbits/s speed=33.5x elapsed=0:00:04.02    frame= 3560 fps=786 q=-0.0 size=  122624KiB time=00:02:28.29 bitrate=6774.1kbits/s speed=32.7x elapsed=0:00:04.52    frame= 4031 fps=801 q=-0.0 size=  131072KiB time=00:02:47.91 bitrate=6394.5kbits/s speed=33.4x elapsed=0:00:05.03    frame= 4451 fps=805 q=-0.0 size=  144640KiB time=00:03:05.41 bitrate=6390.4kbits/s speed=33.5x elapsed=0:00:05.53    frame= 4918 fps=815 q=-0.0 size=  153344KiB time=00:03:24.87 bitrate=6131.5kbits/s speed=33.9x elapsed=0:00:06.03    frame= 5391 fps=824 q=-0.0 size=  161792KiB time=00:03:44.58 bitrate=5901.6kbits/s speed=34.3x elapsed=0:00:06.53    frame= 5841 fps=829 q=-0.0 size=  173568KiB time=00:04:03.33 bitrate=5843.3kbits/s speed=34.5x elapsed=0:00:07.04    frame= 6236 fps=826 q=-0.0 size=  190976KiB time=00:04:19.79 bitrate=6022.0kbits/s speed=34.4x elapsed=0:00:07.54    frame= 6632 fps=823 q=-0.0 size=  207872KiB time=00:04:36.29 bitrate=6163.4kbits/s speed=34.3x elapsed=0:00:08.05    frame= 6996 fps=817 q=-0.0 size=  226816KiB time=00:04:51.45 bitrate=6375.1kbits/s speed=34.1x elapsed=0:00:08.55    frame= 7387 fps=815 q=-0.0 size=  243968KiB time=00:05:07.75 bitrate=6494.2kbits/s speed=  34x elapsed=0:00:09.06    frame= 7750 fps=810 q=-0.0 size=  263680KiB time=00:05:22.87 bitrate=6690.1kbits/s speed=33.7x elapsed=0:00:09.56    frame= 8095 fps=804 q=-0.0 size=  283648KiB time=00:05:37.25 bitrate=6890.0kbits/s speed=33.5x elapsed=0:00:10.07    frame= 8478 fps=802 q=-0.0 size=  300288KiB time=00:05:53.20 bitrate=6964.6kbits/s speed=33.4x elapsed=0:00:10.57    frame= 8951 fps=808 q=-0.0 size=  309760KiB time=00:06:12.91 bitrate=6804.6kbits/s speed=33.7x elapsed=0:00:11.07    frame= 9376 fps=810 q=-0.0 size=  324864KiB time=00:06:30.62 bitrate=6812.9kbits/s speed=33.7x elapsed=0:00:11.58    [mp4 @ 0x84cc17c00] Starting second pass: moving the moov atom to the beginning of the file
+[out#0/mp4 @ 0x84d068480] video:325481KiB audio:6223KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: 0.069209%
+frame= 9556 fps=796 q=-0.0 Lsize=  331934KiB time=00:06:38.12 bitrate=6830.0kbits/s speed=33.2x elapsed=0:00:12.00    
