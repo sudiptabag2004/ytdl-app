@@ -6,6 +6,8 @@ import shutil
 from flask import Flask, request, jsonify, send_from_directory, Response, send_file
 import uuid
 import re
+import threading
+import time
 
 # Cloud Server Configuration
 SESSION_CACHE_DIR = os.path.join(os.getcwd(), 'ytdown_cache')
@@ -256,8 +258,10 @@ def download():
     browser = data.get('browser', 'safari')
     overwrite = data.get('overwrite', False)
     
-    # 🌩 Cloud Mode: Enforce isolated cache directory, ignore client custom paths
-    output_dir = SESSION_CACHE_DIR
+    # 🌩 Cloud Mode: Isolate downloads via UUID to prevent simultaneous user collisions
+    session_id = str(uuid.uuid4())
+    output_dir = os.path.join(SESSION_CACHE_DIR, session_id)
+    os.makedirs(output_dir, exist_ok=True)
 
     base_args = [
         '--no-cache-dir',
@@ -453,7 +457,11 @@ def cleanup_file():
         safe_dir = os.path.abspath(SESSION_CACHE_DIR)
         target_path = os.path.abspath(filepath)
         if target_path.startswith(safe_dir) and os.path.exists(target_path):
-            os.remove(target_path)
+            # If it's a directory (session folder), remove it
+            if os.path.isdir(target_path):
+                shutil.rmtree(target_path, ignore_errors=True)
+            else:
+                os.remove(target_path)
             return jsonify({'success': True})
     except Exception:
         pass
@@ -514,6 +522,28 @@ def install_ffmpeg():
     threading.Thread(target=run_install).start()
     return jsonify({'message': 'Installation started in background. This may take a few minutes.'})
 
+
+def cache_janitor():
+    """Background thread to delete server files older than 2 hours to prevent disk saturation on Render."""
+    while True:
+        try:
+            now = time.time()
+            if os.path.exists(SESSION_CACHE_DIR):
+                for item in os.listdir(SESSION_CACHE_DIR):
+                    item_path = os.path.join(SESSION_CACHE_DIR, item)
+                    if os.path.isdir(item_path):
+                        if now - os.path.getmtime(item_path) > 7200:
+                            shutil.rmtree(item_path, ignore_errors=True)
+                    elif os.path.isfile(item_path):
+                        if now - os.path.getmtime(item_path) > 7200:
+                            try: os.remove(item_path)
+                            except: pass
+        except Exception as e:
+            print(f"Janitor error: {e}")
+            pass
+        time.sleep(1800)  # Check every 30 mins
+
+threading.Thread(target=cache_janitor, daemon=True).start()
 
 if __name__ == '__main__':
     port = 5000
