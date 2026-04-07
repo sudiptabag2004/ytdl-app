@@ -3,9 +3,13 @@ import json
 import os
 import sys
 import shutil
-from flask import Flask, request, jsonify, send_from_directory, Response
-import threading
+from flask import Flask, request, jsonify, send_from_directory, Response, send_file
+import uuid
 import re
+
+# Cloud Server Configuration
+SESSION_CACHE_DIR = os.path.join(os.getcwd(), 'ytdown_cache')
+os.makedirs(SESSION_CACHE_DIR, exist_ok=True)
 
 app = Flask(__name__, static_folder='static')
 
@@ -252,12 +256,8 @@ def download():
     browser = data.get('browser', 'safari')
     overwrite = data.get('overwrite', False)
     
-    output_dir = os.path.expanduser(custom_path if custom_path else '~/Downloads')
-    
-    try:
-        os.makedirs(output_dir, exist_ok=True)
-    except Exception as e:
-        return jsonify({'error': f"Invalid download path: {str(e)}"}), 400
+    # 🌩 Cloud Mode: Enforce isolated cache directory, ignore client custom paths
+    output_dir = SESSION_CACHE_DIR
 
     base_args = [
         '--no-cache-dir',
@@ -356,16 +356,22 @@ def download():
             print(f"   [Engine] Running: {current_args[0]} {current_args[-1][:40]}...")
             process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
             forbidden_detected = False
+            last_file_path = None
             
             try:
                 for line in process.stdout:
                     line = line.strip()
                     if not line: continue
                     
+                    # Track File Path
+                    if "Destination:" in line:
+                        last_file_path = line.split("Destination:")[1].strip()
+                    elif 'Merging formats into' in line:
+                        last_file_path = line.split('Merging formats into')[1].strip().strip('"')
+                        
                     if "HTTP Error 403" in line or "Forbidden" in line:
                         forbidden_detected = True
                         print(f"   [Engine] 403 Detected. Clearning cache and rotating client...")
-                        # Self-Healing: Clear cache for next attempt
                         try: subprocess.run([ytdlp_bin, '--rm-cache-dir'], check=False)
                         except: pass
                         
@@ -374,7 +380,11 @@ def download():
                     
                     line_lower = line.lower()
                     if "has already been downloaded" in line_lower or "file is already present" in line_lower:
-                        yield f"data: {json.dumps({'log': '⚠️ Video already exists in your folder.', 'conflict': True})}\n\n"
+                        # Extract filename if possible
+                        parts = line.split("has already been downloaded")
+                        if len(parts) > 1:
+                            last_file_path = parts[0].replace("[download]", "").strip()
+                        yield f"data: {json.dumps({'log': '⚠️ Video already exists in your folder.', 'conflict': True, 'filepath': last_file_path})}\n\n"
                         process.terminate()
                         return
                     
@@ -383,10 +393,10 @@ def download():
                 if not forbidden_detected:
                     process.wait()
                     if process.returncode == 0:
-                        yield f"data: {json.dumps({'done': True, 'dir': output_dir})}\n\n"
+                        yield f"data: {json.dumps({'done': True, 'filepath': last_file_path, 'dir': output_dir})}\n\n"
                     else:
                         yield f"data: {json.dumps({'error': 'Download failed'})}\n\n"
-                    return # Success or fatal error (not 403)
+                    return 
                 
             except GeneratorExit:
                 if process.poll() is None:
@@ -410,32 +420,25 @@ def clear_cache():
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/api/browse', methods=['POST'])
-def browse_folder():
-    """Trigger a native macOS folder selection dialog"""
-    try:
-        # Run AppleScript to open a choosing folder dialog
-        script = 'POSIX path of (choose folder with prompt "Select Download Folder")'
-        cmd = ['osascript', '-e', script]
-        output = subprocess.check_output(cmd, text=True).strip()
-        return jsonify({'path': output})
-    except subprocess.CalledProcessError:
-        return jsonify({'error': 'Folder selection cancelled'}), 400
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+@app.route('/api/fetch_file', methods=['GET'])
+def fetch_file():
+    """🌩 Cloud Mode: Streams a completed download from the cloud cache to the user's phone/browser."""
+    filepath = request.args.get('filepath')
+    if not filepath or not os.path.exists(filepath):
+        return "File not found or expired from server cache.", 404
+    
+    return send_file(filepath, as_attachment=True)
 
-@app.route('/api/open-folder', methods=['POST'])
-def open_folder():
-    """Open the download folder in Finder"""
+@app.route('/api/cleanup_file', methods=['POST'])
+def cleanup_file():
+    """🌩 Cloud Mode: Deletes the file from the cloud server after download to save space."""
+    filepath = request.json.get('filepath')
     try:
-        path = request.json.get('path', '~/Downloads')
-        expanded_path = os.path.expanduser(path)
-        if os.path.exists(expanded_path):
-            subprocess.run(['open', expanded_path], check=True)
+        if filepath and filepath.startswith(SESSION_CACHE_DIR) and os.path.exists(filepath):
+            os.remove(filepath)
             return jsonify({'success': True})
-        return jsonify({'error': 'Folder not found'}), 404
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    except Exception as e: pass
+    return jsonify({'success': False})
 
 
 @app.route('/api/status', methods=['GET'])

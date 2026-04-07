@@ -891,14 +891,13 @@
           </div>
         </div>
 
-        <!-- Download Location -->
-        <div class="toggle-row" style="margin-top: 12px; background: var(--surface2); border: 1.5px solid var(--border);">
-          <div style="flex: 1; overflow: hidden;">
-            <div class="toggle-label">Save to Folder</div>
-            <div id="pathDisplay" style="color: var(--muted); font-family: var(--mono); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 2px;">~/Downloads</div>
-          </div>
-          <button class="btn-small" onclick="browseFolder()" style="margin-left: 12px; height: 32px; flex-shrink: 0; padding: 0 16px;">Change</button>
+        <!-- Cloud Target Path -->
+        <div class="option-group" style="padding: 16px; margin-top: 16px;">
+          <div style="font-size:12px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">Cloud Server Cache</div>
+          <div class="path-display" id="pathDisplay">/tmp/ytdown_cache (managed automatically)</div>
         </div>
+
+        <button class="btn-primary" style="height: 56px; font-size: 16px; width: 100%; margin-top: 16px;" onclick="startDownload()">Download Now ↓</button>
       </div>
 
       <!-- Section 2: Identity & Bypass -->
@@ -1001,19 +1000,20 @@
       <div id="fileDetail" style="font-size: 11px; color: var(--muted); margin-top: 10px; font-family: var(--mono);"></div>
     </div>
 
-    <div class="success-banner" id="successBanner">
+    <div class="success-banner" id="successBanner" style="display: none;">
       <h3>Download Complete</h3>
-      <p id="successCountText">All files have been saved successfully.</p>
+      <p id="successCountText">Files downloaded to cloud server successfully.</p>
+      
+      <!-- Cloud Downloads Link Area -->
+      <div id="cloudDownloads" style="margin-top: 16px; display: flex; flex-direction: column; gap: 10px;">
+      </div>
+
       <div id="failedList" style="text-align: left; margin-top: 16px; font-size: 13px; color: #ff7070; background: #ff3b3b11; border-radius: 10px; padding: 12px; display: none; max-height: 200px; overflow-y: auto;">
         <strong>The following items could not be downloaded:</strong>
         <ul id="failedItems" style="margin-top: 8px; padding-left: 20px;"></ul>
       </div>
       <div class="action-row" style="margin-top: 24px; gap: 12px;">
         <button class="btn-restart" onclick="restart()" style="flex: 1;">New Download</button>
-        <button class="btn-secondary" onclick="openDownloadFolder()" style="flex: 1; min-height: 48px; border-radius: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-          View in Finder
-        </button>
       </div>
     </div>
   </div>
@@ -1460,12 +1460,13 @@
     state.successCount = 0;
     state.failCount = 0;
     state.failures = [];
+    state.completedFiles = [];
 
     const total = state.selectedVideos.length;
     dlTitle.textContent = total > 1 ? `Batch downloading ${total} videos` : state.selectedVideos[0].title;
     dlMeta.innerHTML = `
       Quality: <strong>${state.quality}</strong> &nbsp;|&nbsp;
-      Folder: <strong>${state.outputPath}</strong>
+      Mode: <strong>Cloud Download</strong>
     `;
 
     state.applyAllConflicts = false;
@@ -1479,9 +1480,12 @@
       if (total === 1) dlTitle.textContent = v.title;
 
       const result = await downloadOne(v.url || state.url, q, v.title);
-      if (result === 'success') {
+      if (result.status === 'success') {
         state.successCount++;
-      } else if (result === 'skipped') {
+        if (result.filepath) {
+           state.completedFiles.push({ title: v.title, filepath: result.filepath });
+        }
+      } else if (result.status === 'skipped') {
         // Not a failure, just skipped
       } else {
         state.failCount++;
@@ -1489,9 +1493,63 @@
       }
     }
 
+    // Render Cloud Downloads Links
+    const cloudLinksContainer = document.getElementById('cloudDownloads');
+    cloudLinksContainer.innerHTML = '';
+    
+    if (state.completedFiles.length > 0) {
+      state.completedFiles.forEach(file => {
+         const link = document.createElement('a');
+         link.href = `/api/fetch_file?filepath=${encodeURIComponent(file.filepath)}`;
+         link.className = 'btn primary';
+         link.style.display = 'block';
+         link.style.textAlign = 'center';
+         link.style.textDecoration = 'none';
+         link.style.height = '48px';
+         link.style.lineHeight = '48px';
+         link.style.padding = '0 16px';
+         link.style.background = '#28a745';
+         link.textContent = `📥 Save to Device: ${file.title}`;
+         
+         const cleanupBtn = document.createElement('button');
+         cleanupBtn.className = 'btn outline';
+         cleanupBtn.style.marginTop = '4px';
+         cleanupBtn.style.height = '32px';
+         cleanupBtn.style.fontSize = '12px';
+         cleanupBtn.textContent = '❌ Delete from Server (Save Space)';
+         cleanupBtn.onclick = async () => {
+             cleanupBtn.textContent = 'Deleting...';
+             await fetch('/api/cleanup_file', {
+                 method: 'POST',
+                 headers: { 'Content-Type': 'application/json' },
+                 body: JSON.stringify({ filepath: file.filepath })
+             });
+             cleanupBtn.textContent = 'Deleted!';
+             cleanupBtn.disabled = true;
+             link.style.opacity = '0.5';
+             link.style.pointerEvents = 'none';
+         };
+         
+         cloudLinksContainer.appendChild(link);
+         cloudLinksContainer.appendChild(cleanupBtn);
+      });
+    }
+
+    if (state.failCount > 0) {
+      document.getElementById('failedList').style.display = 'block';
+      const ul = document.getElementById('failedItems');
+      ul.innerHTML = '';
+      state.failures.forEach(f => {
+        const li = document.createElement('li');
+        li.textContent = f;
+        ul.appendChild(li);
+      });
+    }
+
     successBanner.style.display = 'block';
     currentStatus.textContent = 'Finished';
   }
+
 
   function downloadOne(url, forcedQuality = null, title = '', isRetry = false) {
     return new Promise((resolve) => {
@@ -1553,7 +1611,7 @@
                     resolve(await downloadOne(url, forcedQuality, title, true));
                   } else {
                     log(`User chose to SKIP: ${title}`, 'info');
-                    resolve('skipped');
+                    resolve({ status: 'skipped', filepath: d.filepath });
                   }
                   return;
                 }
@@ -1580,11 +1638,11 @@
 
                 if (d.done) {
                   clearTimeout(timeoutId);
-                  resolve('success');
+                  resolve({ status: 'success', filepath: d.filepath });
                 }
                 if (d.error) {
                   clearTimeout(timeoutId);
-                  resolve('error');
+                  resolve({ status: 'error' });
                 }
               } catch (e) {}
             }
@@ -1594,7 +1652,7 @@
         read();
       }).catch(err => {
         clearTimeout(timeoutId);
-        resolve('error');
+        resolve({ status: 'error' });
       });
     });
   }
