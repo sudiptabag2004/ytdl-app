@@ -1,61 +1,0 @@
-ffmpeg started on 2026-04-07 at 22:00:30
-Report written to "ffmpeg-20260407-220030.log"
-Log level: 32
-Command line:
-/opt/homebrew/bin/ffmpeg -y -loglevel repeat+info -i file:/Users/sudiptabag/Downloads/test1//Watches_of_Famous_Indian_Personalities_-_Rolex_Casio_Apple_watch_Best_luxury_watches_India.f136.mp4 -i file:/Users/sudiptabag/Downloads/test1//Watches_of_Famous_Indian_Personalities_-_Rolex_Casio_Apple_watch_Best_luxury_watches_India.f140.m4a -c copy -map 0:v:0 -map 1:a:0 -movflags +faststart -c:v h264_videotoolbox -b:v 8M file:/Users/sudiptabag/Downloads/test1//Watches_of_Famous_Indian_Personalities_-_Rolex_Casio_Apple_watch_Best_luxury_watches_India.temp.mp4
-ffmpeg version 8.1 Copyright (c) 2000-2026 the FFmpeg developers
-  built with Apple clang version 21.0.0 (clang-2100.0.123.102)
-  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/8.1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon
-  libavutil      60. 26.100 / 60. 26.100
-  libavcodec     62. 28.100 / 62. 28.100
-  libavformat    62. 12.100 / 62. 12.100
-  libavdevice    62.  3.100 / 62.  3.100
-  libavfilter    11. 14.100 / 11. 14.100
-  libswscale      9.  5.100 /  9.  5.100
-  libswresample   6.  3.100 /  6.  3.100
-Input #0, mov,mp4,m4a,3gp,3g2,mj2, from 'file:/Users/sudiptabag/Downloads/test1//Watches_of_Famous_Indian_Personalities_-_Rolex_Casio_Apple_watch_Best_luxury_watches_India.f136.mp4':
-  Metadata:
-    major_brand     : dash
-    minor_version   : 0
-    compatible_brands: iso6avc1mp41
-    creation_time   : 2025-01-16T08:21:53.000000Z
-  Duration: 00:06:58.73, start: 0.000000, bitrate: 380 kb/s
-  Stream #0:0[0x1](und): Video: h264 (Main) (avc1 / 0x31637661), yuv420p(tv, bt709, progressive), 1280x720 [SAR 1:1 DAR 16:9], 229 kb/s, 30 fps, 30 tbr, 15360 tbn (default)
-    Metadata:
-      creation_time   : 2025-01-16T08:21:53.000000Z
-      handler_name    : ISO Media file produced by Google Inc.
-Input #1, mov,mp4,m4a,3gp,3g2,mj2, from 'file:/Users/sudiptabag/Downloads/test1//Watches_of_Famous_Indian_Personalities_-_Rolex_Casio_Apple_watch_Best_luxury_watches_India.f140.m4a':
-  Metadata:
-    major_brand     : dash
-    minor_version   : 0
-    compatible_brands: iso6mp41
-    creation_time   : 2025-01-16T08:07:22.000000Z
-    encoder         : Google
-  Duration: 00:06:58.82, start: 0.000000, bitrate: 129 kb/s
-  Stream #1:0[0x1](eng): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 128 kb/s (default)
-    Metadata:
-      creation_time   : 2025-01-16T08:07:22.000000Z
-      handler_name    : ISO Media file produced by Google Inc.
-[vost#0:0 @ 0xa28cc0000] Multiple -codec/-c/-acodec/-vcodec/-scodec/-dcodec options specified for stream 0, only the last option '-codec:v h264_videotoolbox' will be used.
-Stream mapping:
-  Stream #0:0 -> #0:0 (h264 (native) -> h264 (h264_videotoolbox))
-  Stream #1:0 -> #0:1 (copy)
-Press [q] to stop, [?] for help
-Output #0, mp4, to 'file:/Users/sudiptabag/Downloads/test1//Watches_of_Famous_Indian_Personalities_-_Rolex_Casio_Apple_watch_Best_luxury_watches_India.temp.mp4':
-  Metadata:
-    major_brand     : dash
-    minor_version   : 0
-    compatible_brands: iso6avc1mp41
-    encoder         : Lavf62.12.100
-  Stream #0:0(und): Video: h264 (avc1 / 0x31637661), yuv420p(tv, bt709, progressive), 1280x720 [SAR 1:1 DAR 16:9], q=2-31, 8000 kb/s, 30 fps, 15360 tbn (default)
-    Metadata:
-      encoder         : Lavc62.28.100 h264_videotoolbox
-      creation_time   : 2025-01-16T08:21:53.000000Z
-      handler_name    : ISO Media file produced by Google Inc.
-  Stream #0:1(eng): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 128 kb/s (default)
-    Metadata:
-      creation_time   : 2025-01-16T08:07:22.000000Z
-      handler_name    : ISO Media file produced by Google Inc.
-frame=  143 fps=0.0 q=-0.0 size=    3840KiB time=00:00:04.73 bitrate=6646.0kbits/s speed=9.37x elapsed=0:00:00.50    frame=  341 fps=339 q=-0.0 size=   11008KiB time=00:00:11.33 bitrate=7956.9kbits/s speed=11.3x elapsed=0:00:01.00    frame=  539 fps=357 q=-0.0 size=   16128KiB time=00:00:17.93 bitrate=7367.3kbits/s speed=11.9x elapsed=0:00:01.50    frame=  736 fps=366 q=-0.0 size=   22016KiB time=00:00:24.50 bitrate=7361.4kbits/s speed=12.2x elapsed=0:00:02.00    frame=  934 fps=372 q=-0.0 size=   28416KiB time=00:00:31.10 bitrate=7485.0kbits/s speed=12.4x elapsed=0:00:02.50    frame= 1133 fps=376 q=-0.0 size=   35328KiB time=00:00:37.73 bitrate=7669.8kbits/s speed=12.5x elapsed=0:00:03.01    frame= 1328 fps=377 q=-0.0 size=   42752KiB time=00:00:44.23 bitrate=7917.7kbits/s speed=12.6x elapsed=0:00:03.51    frame= 1524 fps=379 q=-0.0 size=   49408KiB time=00:00:50.76 bitrate=7972.8kbits/s speed=12.6x elapsed=0:00:04.02    frame= 1709 fps=378 q=-0.0 size=   55808KiB time=00:00:56.93 bitrate=8030.1kbits/s speed=12.6x elapsed=0:00:04.52    frame= 1894 fps=377 q=-0.0 size=   57856KiB time=00:01:03.10 bitrate=7511.2kbits/s speed=12.5x elapsed=0:00:05.03    frame= 2096 fps=379 q=-0.0 size=   60160KiB time=00:01:09.83 bitrate=7057.2kbits/s speed=12.6x elapsed=0:00:05.53    frame= 2286 fps=379 q=-0.0 size=   70144KiB time=00:01:16.16 bitrate=7544.2kbits/s speed=12.6x elapsed=0:00:06.03    frame= 2482 fps=380 q=-0.0 size=   78080KiB time=00:01:22.70 bitrate=7734.4kbits/s speed=12.6x elapsed=0:00:06.53    frame= 2676 fps=380 q=-0.0 size=   87552KiB time=00:01:29.16 bitrate=8043.7kbits/s speed=12.7x elapsed=0:00:07.03    frame= 2872 fps=381 q=-0.0 size=   94720KiB time=00:01:35.70 bitrate=8108.1kbits/s speed=12.7x elapsed=0:00:07.54    frame= 3070 fps=382 q=-0.0 size=  100352KiB time=00:01:42.30 bitrate=8036.0kbits/s speed=12.7x elapsed=0:00:08.04    frame= 3268 fps=382 q=-0.0 size=  105472KiB time=00:01:48.90 bitrate=7934.1kbits/s speed=12.7x elapsed=0:00:08.54    frame= 3464 fps=383 q=-0.0 size=  112384KiB time=00:01:55.43 bitrate=7975.6kbits/s speed=12.8x elapsed=0:00:09.05    frame= 3661 fps=383 q=-0.0 size=  119040KiB time=00:02:02.00 bitrate=7993.2kbits/s speed=12.8x elapsed=0:00:09.55    frame= 3824 fps=380 q=-0.0 size=  123648KiB time=00:02:07.46 bitrate=7946.6kbits/s speed=12.7x elapsed=0:00:10.05    frame= 4021 fps=381 q=-0.0 size=  131584KiB time=00:02:14.00 bitrate=8044.3kbits/s speed=12.7x elapsed=0:00:10.55    frame= 4219 fps=382 q=-0.0 size=  137984KiB time=00:02:20.60 bitrate=8039.6kbits/s speed=12.7x elapsed=0:00:11.05    frame= 4415 fps=382 q=-0.0 size=  144896KiB time=00:02:27.13 bitrate=8067.4kbits/s speed=12.7x elapsed=0:00:11.55    frame= 4609 fps=382 q=-0.0 size=  151040KiB time=00:02:33.60 bitrate=8055.5kbits/s speed=12.7x elapsed=0:00:12.05    frame= 4809 fps=383 q=-0.0 size=  156672KiB time=00:02:40.26 bitrate=8008.3kbits/s speed=12.8x elapsed=0:00:12.56    frame= 5008 fps=383 q=-0.0 size=  162560KiB time=00:02:46.90 bitrate=7979.0kbits/s speed=12.8x elapsed=0:00:13.06    frame= 5206 fps=384 q=-0.0 size=  169984KiB time=00:02:53.50 bitrate=8026.0kbits/s speed=12.8x elapsed=0:00:13.57    frame= 5400 fps=384 q=-0.0 size=  177408KiB time=00:02:59.96 bitrate=8075.5kbits/s speed=12.8x elapsed=0:00:14.07    frame= 5594 fps=384 q=-0.0 size=  183808KiB time=00:03:06.43 bitrate=8076.6kbits/s speed=12.8x elapsed=0:00:14.57    frame= 5789 fps=384 q=-0.0 size=  190976KiB time=00:03:12.93 bitrate=8108.9kbits/s speed=12.8x elapsed=0:00:15.07    frame= 5982 fps=384 q=-0.0 size=  197632KiB time=00:03:19.36 bitrate=8120.7kbits/s speed=12.8x elapsed=0:00:15.57    frame= 6178 fps=384 q=-0.0 size=  203264KiB time=00:03:25.90 bitrate=8087.1kbits/s speed=12.8x elapsed=0:00:16.07    frame= 6377 fps=385 q=-0.0 size=  209920KiB time=00:03:32.53 bitrate=8091.3kbits/s speed=12.8x elapsed=0:00:16.58    frame= 6577 fps=385 q=-0.0 size=  215296KiB time=00:03:39.20 bitrate=8046.1kbits/s speed=12.8x elapsed=0:00:17.08    frame= 6770 fps=385 q=-0.0 size=  222720KiB time=00:03:45.63 bitrate=8086.2kbits/s speed=12.8x elapsed=0:00:17.59    frame= 6970 fps=385 q=-0.0 size=  228352KiB time=00:03:52.30 bitrate=8052.8kbits/s speed=12.8x elapsed=0:00:18.09    frame= 7168 fps=385 q=-0.0 size=  235008KiB time=00:03:58.90 bitrate=8058.5kbits/s speed=12.8x elapsed=0:00:18.59    frame= 7363 fps=385 q=-0.0 size=  242176KiB time=00:04:05.40 bitrate=8084.4kbits/s speed=12.8x elapsed=0:00:19.10    frame= 7556 fps=385 q=-0.0 size=  248320KiB time=00:04:11.83 bitrate=8077.7kbits/s speed=12.8x elapsed=0:00:19.60    frame= 7754 fps=386 q=-0.0 size=  254464KiB time=00:04:18.43 bitrate=8066.2kbits/s speed=12.9x elapsed=0:00:20.10    frame= 7951 fps=386 q=-0.0 size=  261120KiB time=00:04:25.00 bitrate=8072.1kbits/s speed=12.9x elapsed=0:00:20.60    frame= 8147 fps=386 q=-0.0 size=  267520KiB time=00:04:31.53 bitrate=8070.9kbits/s speed=12.9x elapsed=0:00:21.10    frame= 8344 fps=386 q=-0.0 size=  273920KiB time=00:04:38.10 bitrate=8068.9kbits/s speed=12.9x elapsed=0:00:21.61    frame= 8540 fps=386 q=-0.0 size=  280320KiB time=00:04:44.63 bitrate=8067.9kbits/s speed=12.9x elapsed=0:00:22.11    frame= 8737 fps=386 q=-0.0 size=  288000KiB time=00:04:51.20 bitrate=8102.0kbits/s speed=12.9x elapsed=0:00:22.62    frame= 8937 fps=386 q=-0.0 size=  294400KiB time=00:04:57.86 bitrate=8096.7kbits/s speed=12.9x elapsed=0:00:23.12    frame= 9134 fps=387 q=-0.0 size=  300800KiB time=00:05:04.43 bitrate=8094.2kbits/s speed=12.9x elapsed=0:00:23.63    frame= 9334 fps=387 q=-0.0 size=  307456KiB time=00:05:11.10 bitrate=8096.0kbits/s speed=12.9x elapsed=0:00:24.13    frame= 9533 fps=387 q=-0.0 size=  313344KiB time=00:05:17.73 bitrate=8078.8kbits/s speed=12.9x elapsed=0:00:24.64    frame= 9729 fps=387 q=-0.0 size=  319744KiB time=00:05:24.26 bitrate=8077.7kbits/s speed=12.9x elapsed=0:00:25.14    frame= 9921 fps=387 q=-0.0 size=  326400KiB time=00:05:30.66 bitrate=8086.3kbits/s speed=12.9x elapsed=0:00:25.64    frame=10115 fps=387 q=-0.0 size=  333312KiB time=00:05:37.13 bitrate=8099.1kbits/s speed=12.9x elapsed=0:00:26.15    frame=10312 fps=387 q=-0.0 size=  340224KiB time=00:05:43.70 bitrate=8109.2kbits/s speed=12.9x elapsed=0:00:26.65    frame=10512 fps=387 q=-0.0 size=  344832KiB time=00:05:50.36 bitrate=8062.6kbits/s speed=12.9x elapsed=0:00:27.15    frame=10704 fps=387 q=-0.0 size=  352256KiB time=00:05:56.76 bitrate=8088.4kbits/s speed=12.9x elapsed=0:00:27.65    frame=10897 fps=387 q=-0.0 size=  359680KiB time=00:06:03.20 bitrate=8112.6kbits/s speed=12.9x elapsed=0:00:28.16    frame=11089 fps=387 q=-0.0 size=  365824KiB time=00:06:09.60 bitrate=8108.3kbits/s speed=12.9x elapsed=0:00:28.66    frame=11287 fps=387 q=-0.0 size=  372480KiB time=00:06:16.20 bitrate=8111.0kbits/s speed=12.9x elapsed=0:00:29.16    frame=11470 fps=387 q=-0.0 size=  378624KiB time=00:06:22.30 bitrate=8113.2kbits/s speed=12.9x elapsed=0:00:29.66    frame=11667 fps=387 q=-0.0 size=  384768KiB time=00:06:28.86 bitrate=8105.7kbits/s speed=12.9x elapsed=0:00:30.17    frame=11866 fps=387 q=-0.0 size=  391168KiB time=00:06:35.50 bitrate=8102.3kbits/s speed=12.9x elapsed=0:00:30.67    frame=12066 fps=387 q=-0.0 size=  398336KiB time=00:06:42.16 bitrate=8114.0kbits/s speed=12.9x elapsed=0:00:31.18    frame=12266 fps=387 q=-0.0 size=  404736KiB time=00:06:48.83 bitrate=8109.9kbits/s speed=12.9x elapsed=0:00:31.68    frame=12465 fps=387 q=-0.0 size=  410112KiB time=00:06:55.46 bitrate=8086.4kbits/s speed=12.9x elapsed=0:00:32.19    [mp4 @ 0xa29023c00] Starting second pass: moving the moov atom to the beginning of the file
-[out#0/mp4 @ 0xa29050480] video:404339KiB audio:6544KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: 0.085530%
-frame=12562 fps=383 q=-0.0 Lsize=  411235KiB time=00:06:58.70 bitrate=8045.9kbits/s speed=12.8x elapsed=0:00:32.81    

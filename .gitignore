@@ -1,0 +1,14 @@
+# Environments
+venv/
+.env
+
+# Logs
+*.log
+ffmpeg-*.log
+
+# Cache
+__pycache__/
+*.pyc
+
+# Mac OS
+.DS_Store
