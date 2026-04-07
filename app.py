@@ -77,6 +77,7 @@ def get_info():
 
     try:
         stdout, stderr, code = run_ytdlp([
+            '--extractor-args', 'youtube:player-client=ios,tv,android',
             '--dump-json',
             '--flat-playlist',
             '--no-warnings',
@@ -139,7 +140,7 @@ def get_formats():
         stdout, stderr, code = run_ytdlp([
             '--list-formats',
             '--no-warnings',
-            '--extractor-args', 'youtube:player-client=web,ios,android',
+            '--extractor-args', 'youtube:player-client=ios,tv,android',
             '-J',
             '--', url
         ])
