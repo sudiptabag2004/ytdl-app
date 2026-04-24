@@ -275,8 +275,8 @@ def download():
     local_mode = data.get('local_mode', True)
     
     if local_mode:
-        # 💻 Local Mode: Deposit file directly into user's physical Mac Downloads folder
-        output_dir = os.path.expanduser('~/Downloads')
+        # 💻 Local Mode: Deposit file directly into user's physical Mac folder
+        output_dir = os.path.expanduser(custom_path if custom_path else '~/Downloads')
         os.makedirs(output_dir, exist_ok=True)
         session_id = None
     else:
@@ -292,7 +292,6 @@ def download():
         '--newline',
         '--no-mtime',
         '-o', f'{output_dir}/%(title)s.%(ext)s',
-        '--restrict-filenames', # Safety for weird characters in titles
     ]
     
     # Edge Case: Disk Space Shield
@@ -468,7 +467,7 @@ def fetch_file():
     try:
         safe_dir = os.path.abspath(SESSION_CACHE_DIR)
         target_path = os.path.abspath(filepath)
-        if not target_path.startswith(safe_dir):
+        if os.path.commonpath([safe_dir, target_path]) != safe_dir:
             return "Unauthorized access.", 403
     except Exception:
         return "Invalid path.", 400
@@ -489,7 +488,7 @@ def cleanup_file():
     try:
         safe_dir = os.path.abspath(SESSION_CACHE_DIR)
         target_path = os.path.abspath(filepath)
-        if target_path.startswith(safe_dir) and os.path.exists(target_path):
+        if os.path.commonpath([safe_dir, target_path]) == safe_dir and os.path.exists(target_path):
             # If it's a directory (session folder), remove it
             if os.path.isdir(target_path):
                 shutil.rmtree(target_path, ignore_errors=True)
@@ -500,6 +499,27 @@ def cleanup_file():
         pass
         
     return jsonify({'success': False})
+
+
+@app.route('/api/browse', methods=['POST'])
+def browse_folder():
+    """Open a native folder picker on macOS"""
+    if sys.platform == 'darwin':
+        try:
+            script = '''
+            set frontApp to (path to frontmost application as text)
+            tell application frontApp
+                set folderPath to choose folder with prompt "Select Download Destination:"
+                return POSIX path of folderPath
+            end tell
+            '''
+            result = subprocess.run(['osascript', '-e', script], capture_output=True, text=True)
+            if result.returncode == 0 and result.stdout.strip():
+                return jsonify({'path': result.stdout.strip()})
+        except Exception as e:
+            print(f"Browse error: {e}")
+            pass
+    return jsonify({'path': ''})
 
 
 @app.route('/api/status', methods=['GET'])
@@ -556,6 +576,20 @@ def install_ffmpeg():
     return jsonify({'message': 'Installation started in background. This may take a few minutes.'})
 
 
+def get_latest_mtime(path):
+    latest_mtime = os.path.getmtime(path)
+    if os.path.isdir(path):
+        for root, dirs, files in os.walk(path):
+            for d in dirs:
+                mtime = os.path.getmtime(os.path.join(root, d))
+                if mtime > latest_mtime:
+                    latest_mtime = mtime
+            for f in files:
+                mtime = os.path.getmtime(os.path.join(root, f))
+                if mtime > latest_mtime:
+                    latest_mtime = mtime
+    return latest_mtime
+
 def cache_janitor():
     """Background thread to delete server files older than 2 hours to prevent disk saturation on Render."""
     while True:
@@ -565,7 +599,7 @@ def cache_janitor():
                 for item in os.listdir(SESSION_CACHE_DIR):
                     item_path = os.path.join(SESSION_CACHE_DIR, item)
                     if os.path.isdir(item_path):
-                        if now - os.path.getmtime(item_path) > 7200:
+                        if now - get_latest_mtime(item_path) > 7200:
                             shutil.rmtree(item_path, ignore_errors=True)
                     elif os.path.isfile(item_path):
                         if now - os.path.getmtime(item_path) > 7200:
